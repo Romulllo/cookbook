@@ -16,7 +16,6 @@ class Cookbook
     save_csv
   end
 
-
   def remove_recipe(recipe_index)
     @recipes.delete_at(recipe_index)
     save_csv
@@ -42,5 +41,4 @@ class Cookbook
       end
     end
   end
-
 end
