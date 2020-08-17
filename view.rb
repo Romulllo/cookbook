@@ -1,36 +1,37 @@
 class View
   def display(recipes)
     recipes.each_with_index do |recipe, index|
-      puts "#{index + 1} - #{recipe.name} - #{recipe.description}"
+      puts "#{index + 1}. #{recipe.name}:"
+      puts "#{recipe.description}"
+      puts "Ready in just: #{recipe.prep_time}." if recipe.prep_time
+      puts "It's so #{recipe.difficulty} to make it!" if recipe.difficulty
     end
   end
 
-  def to_do_list
-    recipes.each_with_index do |recipe, index|
-      puts "#{index + 1}. [#{done? "X" " "}]#{recipe.name} (#{recipe.pretime}) "
-    end
-  end
-
-  def ask_for(parameter)
-    puts "Please input the #{parameter}"
+  def ask_user_for(stuff)
+    puts "#{stuff.capitalize}?"
     gets.chomp
   end
 
-  def what_scraper
-  	puts 'What ingredient would you like a recipe for?'
-  	recipe = gets.chomp
-  	puts "Looking for #{recipe} recipes on the Internet..."
-  	recipe
+  def ask_user_for_index
+    puts "Index?"
+    gets.chomp.to_i - 1
   end
 
-  def display_scrape(items)
-  	items.each_with_index do |item_key, index|
-    	puts "#{index + 1} - #{item_key[:title]}"
-		end
-	end
+  def ask_for_ingredient_to_import
+    puts "What ingredient would you like a recipe for?"
+    ingredient = gets.chomp
+    puts "Looking for \"#{ingredient}\" recipes on the Internet..."
+    return ingredient
+  end
 
-	def ask_for_add_scrape
-		puts 'Which recipe would you like to import? (enter index)'
-		gets.chomp.to_i - 1
-	end
+  def print(message)
+    puts message
+  end
+
+  def show_recipes(array_of_hashes_of_recipes)
+    array_of_hashes_of_recipes.each_with_index do |hash_of_recipe, index|
+      puts "#{index + 1} - #{hash_of_recipe[:name]}"
+    end
+  end
 end

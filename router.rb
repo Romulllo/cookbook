@@ -20,14 +20,13 @@ class Router
 
   def route_action(action)
     case action
-    when 1 then @controller.list_to_do      
-    when 2 then @controller.list
-    when 3 then @controller.create
-    when 4 then @controller.destroy
-    when 5 then @controller.import_recipes
-    when 6 then stop
+    when 1 then @controller.list
+    when 2 then @controller.create
+    when 3 then @controller.destroy
+    when 4 then @controller.import
+    when 5 then stop
     else
-      puts "Please press 1, 2, 3, 4, 5 or 6"
+      puts "Please press 1, 2, 3, 4 or 5"
     end
   end
 
@@ -36,13 +35,13 @@ class Router
   end
 
   def display_tasks
-    puts "-- My CookBook --"
+    puts "-----------------------------"
     puts "What do you want to do next?"
-    puts "1 - Recipes to do"
-    puts "2 - List all recipes"
-    puts "3 - Create a new recipe"
-    puts "4 - Destroy a recipe"
-    puts "5 - Import recipes from the Internet"
-    puts "6 - Stop and exit the program"
+    puts "1 - List all recipes"
+    puts "2 - Create a new recipe"
+    puts "3 - Destroy a recipe"
+    puts "4 - Import from the web"
+    puts "5 - Stop and exit the program"
+    puts "-----------------------------"
   end
 end

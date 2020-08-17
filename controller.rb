@@ -1,6 +1,8 @@
-require_relative 'view'
-require 'nokogiri'
 require 'open-uri'
+require 'nokogiri'
+
+require_relative "view"
+require_relative "recipe"
 
 class Controller
   def initialize(cookbook)
@@ -8,65 +10,89 @@ class Controller
     @view = View.new
   end
 
+  # USER ACTIONS
+
   def list
-    # ask the view to show all of the recipes in the cookbook
+    display_recipes
+  end
+
+  def create
+    # ask user for a name
+    name = @view.ask_user_for("name")
+    # ask user for a description
+    description = @view.ask_user_for("description")
+    # create recipe
+    recipe = Recipe.new(name, description)
+    # store in cookbook
+    @cookbook.add_recipe(recipe)
+    # display
+    display_recipes
+  end
+
+  def destroy
+    # display recipes
+    display_recipes
+    # ask user for index (view)
+    index = @view.ask_user_for_index
+    # remove from cookbook (repo)
+    @cookbook.remove_recipe(index)
+    # display
+    display_recipes
+  end
+
+  def import
+    ingredient = @view.ask_for_ingredient_to_import
+    array_of_hashes_of_recipes = scrape_bbc_good_foods(ingredient)
+    @view.show_recipes(array_of_hashes_of_recipes)
+    index = @view.ask_user_for_index
+
+    recipe_hash = array_of_hashes_of_recipes[index]
+    @view.print("Importing \"#{recipe_hash[:name]}\"...")
+
+    new_recipe = Recipe.new(recipe_hash[:name],
+                            recipe_hash[:description],
+                            recipe_hash[:time],
+                            recipe_hash[:difficulty])
+
+    @cookbook.add_recipe(new_recipe)
+  end
+
+#-----------------------------------------------------------------------------------
+  private
+
+  def display_recipes
     recipes = @cookbook.all
     @view.display(recipes)
   end
 
-  def create
-    # ask the user for the name
-    name = @view.ask_for('name')
-    # ask the user for the description
-    description = @view.ask_for('description')
-    # create a new recipe
-    new_recipe = Recipe.new(name, description)
-    # add this recipe to my cookbook
-    @cookbook.add_recipe(new_recipe)
-  end
+  def scrape_bbc_good_foods(ingredient)
+    url = "https://www.bbcgoodfood.com/search/recipes?query=#{ingredient}"
 
-  def import_recipes
-    #pergunta o que quer pesquisar
-    recipe = @view.what_scraper
-    #pesquisa o item
-    scrape_recipes = scrape(recipe)
-    #mostra os itens pesquisados
-    @view.display_scrape(scrape_recipes)
-    #pergunta qual quer adicionar
-    index = @view.ask_for_add_scrape
-    #Adiciona na lista de receita
-    add_recipe = scrape_recipes[index]
+    html_file = open(url).read
+    html_doc = Nokogiri::HTML(html_file)
 
-    new_recipe = Recipe.new(add_recipe[:title], add_recipe[:description])
-    @cookbook.add_recipe(new_recipe)
-  end
+    css_parent_element = '.node.node-recipe.node-teaser-item.clearfix'
+    name_css = 'h3 > a'
+    description_css = ".field-item.even"
+    difficulty_css = 'li.teaser-item__info-item.teaser-item__info-item--skill-level'
+    time_css = 'li.teaser-item__info-item.teaser-item__info-item--total-time > span'
 
-  def destroy
-    # ask the user for an index to destroy
-    index = @view.ask_for('index').to_i - 1
-    @cookbook.remove_recipe(index)
-  end
+    array = []
+    html_doc.search(css_parent_element).first(5).each do |element|
+      name = element.search(name_css).text.strip
+      description = element.search(description_css).text.strip
+      difficulty = element.search(difficulty_css).text.strip
+      time = element.search(time_css).text.strip
 
-  private
+      hash = {
+        name: name,
+        description: description,
+        difficulty: difficulty,
+        time: time
+      }
 
-  def scrape(recipe)
-  url = "https://www.bbcgoodfood.com/search/recipes?query=#{recipe}"
-  # url = "https://lista.mercadolivre.com.br/#{recipe}"
-
-  html_content = open(url).read
-  html_doc = Nokogiri::HTML(html_content)
-
-  parent_css_pattern = 'div.view-content > article.node.node-recipe.node-teaser-item.clearfix'
-  title_css_pattern = 'h3.teaser-item__title > a'
-  description_css_pattern = 'div.field-items'
-  # css_pattern = '.item__info h2 .main-title'
-
-  items = []
-  html_doc.search(parent_css_pattern).first(5).each do |element|
-    title = element.search(title_css_pattern).text.strip
-    description = element.search(description_css_pattern).text.strip
-    items << { title: title, description: description}
+      array << hash
     end
-  items
+    array
   end
 end
