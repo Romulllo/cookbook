@@ -1,46 +1,47 @@
-require 'csv'
-require_relative 'recipe'
+require "csv"
+require_relative "recipe"
 
 class Cookbook
-  def initialize(csv_file_path)
-    @csv_file_path = csv_file_path
-    @recipes = load_csv
-  end
-
-  def all
-    @recipes
+  def initialize(csv_file)
+    @csv_file = csv_file
+    @recipes = []
+    load_csv
   end
 
   def add_recipe(recipe)
     @recipes << recipe
-    save_csv
+    save_to_csv
   end
 
+  def remove_recipe(index)
+    @recipes.delete_at(index)
+    save_to_csv
+  end
 
-  def remove_recipe(recipe_index)
-    @recipes.delete_at(recipe_index)
-    save_csv
+  def all
+    return @recipes
   end
 
   private
 
   def load_csv
-    recipe_array = []
-
-    CSV.foreach(@csv_file_path) do |row|
-      recipe_array << Recipe.new(row[0], row[1])
+    CSV.foreach(@csv_file) do |row|
+      @recipes << Recipe.new(row[0], row[1], row[2], row[3])
     end
-    recipe_array
   end
 
-  def save_csv
+  def save_to_csv
     csv_options = { col_sep: ',', force_quotes: true, quote_char: '"' }
 
-    CSV.open(@csv_file_path, 'wb', csv_options) do |csv|
+    CSV.open(@csv_file, 'wb', csv_options) do |csv|
       @recipes.each do |recipe|
-        csv << [recipe.name, recipe.description]
+        csv << [
+          recipe.name,
+          recipe.description,
+          recipe.prep_time,
+          recipe.difficulty
+        ]
       end
     end
   end
-
 end
